@@ -1,0 +1,71 @@
+#LOCAL_SIDE
+object-group network REMOTE-TRAFFIC
+{% for ip, subnet in config['remote_traffic'] -%}
+ network-object {{ ip }} {{ subnet }}
+{% endfor %}
+object-group network LOCAL-TRAFFIC
+{% for ip, subnet in config['local_traffic'] -%}
+ network-object {{ ip }} {{subnet }}
+{% endfor %}
+
+access-list CORP_TUNNEL extended permit ip object-group LOCAL-TRAFFIC object-group REMOTE-TRAFFIC
+
+crypto ikev2 enable extern
+
+ crypto ikev2 policy 15
+ encryption aes-256
+ integrity sha256
+ group 14
+ prf sha
+ lifetime seconds 86400
+
+ crypto ipsec ikev2 ipsec-proposal IKEV2-IPSEC-ESP-AES-SHA1
+ protocol esp encryption aes-256
+ protocol esp integrity sha-256
+
+tunnel-group {{ config['local_tunnel'] }} type ipsec-l2l
+tunnel-group {{ config['local_tunnel'] }} ipsec-attributes
+ ikev2 remote-authentication pre-shared-key {{ config['remote_pass'] }} 
+ ikev2 local-authentication pre-shared-key {{ config['local_pass'] }} 
+ 
+crypto map CRYPTOMAP 100 match address CORP_TUNNEL
+crypto map CRYPTOMAP 100 set peer {{ config['local_tunnel'] }}
+crypto map CRYPTOMAP 100 set ikev2 ipsec-proposal IKEV2-IPSEC-ESP-AES-SHA1
+crypto map CRYPTOMAP interface extern
+crypto isakmp identity address
+
+##########REMOTE_SIDE##############
+object-group network REMOTE-TRAFFIC
+{% for ip, subnet in config['local_traffic'] -%}
+ network-object {{ ip }} {{ subnet }}
+{% endfor %}
+object-group network LOCAL-TRAFFIC
+{% for ip, subnet in config['remote_traffic'] -%}
+ network-object {{ ip }} {{subnet }}
+{% endfor %}
+
+access-list CORP_TUNNEL extended permit ip object-group LOCAL-TRAFFIC object-group REMOTE-TRAFFIC
+
+crypto ikev2 enable extern
+
+ crypto ikev2 policy 15
+ encryption aes-256
+ integrity sha256
+ group 14
+ prf sha
+ lifetime seconds 86400
+
+ crypto ipsec ikev2 ipsec-proposal IKEV2-IPSEC-ESP-AES-SHA1
+ protocol esp encryption aes-256
+ protocol esp integrity sha-256
+
+tunnel-group {{ config['remote_tunnel'] }} type ipsec-l2l
+tunnel-group {{ config['remote_tunnel'] }} ipsec-attributes
+ ikev2 remote-authentication pre-shared-key {{ config['local_pass'] }} 
+ ikev2 local-authentication pre-shared-key {{ config['remote_pass'] }} 
+ 
+crypto map CRYPTOMAP 100 match address CORP_TUNNEL
+crypto map CRYPTOMAP 100 set peer {{ config['remote_tunnel'] }}
+crypto map CRYPTOMAP 100 set ikev2 ipsec-proposal IKEV2-IPSEC-ESP-AES-SHA1
+crypto map CRYPTOMAP interface extern
+crypto isakmp identity address

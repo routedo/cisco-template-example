@@ -1,0 +1,18 @@
+local_asn: 65000
+
+neighbor: 
+   - ["10.1.25.2", "65200", "ISP1_OUT", "ISP1_IN", "Pass"]
+   
+network:
+   - ["192.1.44.0", "255.255.255.0"]
+
+prefix:
+   - ["ISP1_IN", "permit", "10", "0.0.0.0/0 le 19"]
+   - ["ISP1_IN", "permit", "15", "0.0.0.0/0 ge 20"]
+   - ["ISP1_OUT", "permit", "5", "0.0.0.0/0 le 19"]
+   - ["ISP1_OUT", "permit", "15", "0.0.0.0/0 ge 20"]
+   
+map:
+   - ["ISP1_OUT_MAP", "permit", "10", "ISP1_OUT"] 
+   - ["ISP1_IN_MAP", "permit", "10", "ISP1_IN"] 
+

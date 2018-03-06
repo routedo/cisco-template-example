@@ -1,0 +1,28 @@
+{% for name, action, order, range in config['prefix'] -%}
+prefix-list {{ name }} seq {{ order }} {{ action }} {{ range }}
+{% endfor %}
+
+{% for name, action, order, pre in config['map'] -%}
+route-map {{ name }} {{ action }} {{order}}
+ match ip address prefix-list {{ pre }}
+{% endfor %}
+
+router bgp {{ config['local_asn'] }}
+ bgp log-neighbor-changes
+ address-family ipv4 unicast
+ {% for ip, asn, map_in, map_out, password in config['neighbor'] -%}
+ neighbor {{ ip }} remote-as {{ asn }}
+ neighbor {{ ip }} route-map {{ map_out }} out
+ neighbor {{ ip }} route-map {{ map_in }} in
+ neighbor {{ ip }} ttl-security hops 1
+ neighbor {{ ip }} disable-connected-check
+ neighbor {{ ip }} password {{ password }}
+ neighbor {{ ip }} activate
+ {% endfor %}
+ {% for ip, mask in config['network'] -%}
+  network {{ ip }} mask {{ mask }}
+ {% endfor %}
+ no auto-summary
+ no synchronization
+ exit-address-family
+

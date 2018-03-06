@@ -1,0 +1,12 @@
+remote_traffic: 
+   - ["10.1.25.2", "255.255.255.0"]
+   
+local_traffic:
+   - ["192.1.44.0", "255.255.255.0"]
+
+local_tunnel: 10.11.10.2
+
+remote_tunnel: 10.11.10.10
+   
+remote_pass: disco
+local_pass: panic
